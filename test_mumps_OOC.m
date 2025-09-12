@@ -9,7 +9,7 @@
 % by the worker (deserialized) using the mumps-own OOC
 
 n_workers = 2;
-n_rep = 300;   % parallel iterations
+n_rep = 100;   % parallel iterations
 n_sys = 3e3;   % system size
 n_RHS = 1e1;   % number of rhs vectors
 rng(0815);     % for reproducibility
@@ -55,16 +55,18 @@ id = dmumps(id);       % call wrapper to create mumps object (dmumps = real)
 id.SYM = 1;
 
 % Set parameter to enable OOC.
+% Note: set BEFORE running mumps with id.JOB = 4! (otherwise high memory required -> why?)
+%       set AFTER calling z/dmumps!               (otherwise ICNTL is replaced)
 id.ICNTL(22) = 1;  % OOC factorization and solve phases. The complete matrix of factors is written to disk
 id.ICNTL(35) = 3;  % In an OOC context, (ICNTL(22)=1) this option enables the user to
                    % write all factors to disk which is not the case with ICNTL(35)=2 since factors in low-rank
-                   % form are not written to disk. -> required?
+                   % form are not written to disk.                                -> required?
 
 % % Set save/restore location as parameter.
 % id.SAVE_DIR    = save_dir;
 % id.SAVE_PREFIX = save_prefix;
 
-% Factorize.
+% Factorize OOC.
 fprintf('MUMPS: factorize ... ');
 tic;
 id.JOB = 4;                       % analysis + factorization
@@ -83,7 +85,7 @@ save_SYM = id.SYM;
 
 % Delete the instance, i.e. free internal memory (saved files remain).
 id.JOB = -2;
-id = dmumps(id, sparse([],[],[],n_sys,n_sys));
+id = dmumps(id, sparse([], [], [], n_sys, n_sys)); %#ok<*NASGU>
 
 % Sanity check.
 fprintf('Saved files in %s:\n', save_dir);
@@ -107,7 +109,7 @@ tic;
 id.JOB = 8;
 % Note: pass empty sparse of correct size such that the dumumps wrapper
 %       don't throw an error (passing A as second argument is mandatory).
-id = dmumps(id, sparse([],[],[], n_sys, n_sys));
+id = dmumps(id, sparse([], [], [], n_sys, n_sys));
 fprintf(sprintf('done (%.2d s)\n', toc));
 
 % Loop over serial FBS
@@ -118,7 +120,7 @@ for kk = 1:n_rep
     % Set RHS and solve.
     id.RHS = B;
     id.JOB = 3;
-    id = dmumps(id, sparse([],[],[],n_sys,n_sys));
+    id = dmumps(id, sparse([], [], [], n_sys, n_sys));
     X(:, :, kk) = id.SOL;
 end
 fprintf(sprintf('done (%.2d s)\n', toc));
@@ -143,12 +145,14 @@ end
 
 % Set up (large), read-only variables that should not be passed between
 % worker local iterations.
+% Note: MATLAB's "broadcast warning" means data is copied from the client
+%       to every worker FOR EVERY LOOP ITERATION!
 worker_B = parallel.pool.Constant(B);
 
 % Loop over parallel FBS
 fprintf(sprintf('MUMPS_par: Restore and solve %i times ... ', n_rep));
 % Define storage variabe outside parfor, X = id_.SOL; otherwise would only
-% exist locally!
+% exist on workers locally!
 X = zeros(n_sys, n_RHS, n_rep);
 tic;
 parfor kk = 1:n_rep
@@ -165,12 +169,12 @@ parfor kk = 1:n_rep
     id_.JOB = 8;
     % Note: pass empty sparse of correct size such that the dumumps wrapper
     %       don't throw an error (passing A as second argument is mandatory).
-    id_ = dmumps(id_, sparse([],[],[], n_sys, n_sys));
+    id_ = dmumps(id_, sparse([], [], [], n_sys, n_sys));
     
     % Set RHS and solve.
     id_.RHS = worker_B.Value;
     id_.JOB = 3;
-    id_ = dmumps(id_, sparse([],[],[],n_sys,n_sys));
+    id_ = dmumps(id_, sparse([], [], [], n_sys,n_sys));
     X(:, :, kk) = id_.SOL;
 end
 fprintf(sprintf('done (%.2d s)\n', toc));
@@ -180,16 +184,15 @@ assert(norm(X(:,:,end) - X_ref) < 1e-13);
 
 %% Clean up
 
-% FIXME: how to cleanup local stuff at worker (required at all?)?
-
 % Initialize.
 id_ = initmumps();
 id_ = dmumps(id_);
 id_.SYM = save_SYM;
 
 % Restore saved instance.
+% Note: loading before cleanup is mandatory.
 id_.JOB = 8;
-id_ = dmumps(id_, sparse([],[],[],n_sys,n_sys));
+id_ = dmumps(id_, sparse([], [], [], n_sys, n_sys));
 
 % Remove saved files.
 id_.JOB = -3;
@@ -199,4 +202,3 @@ rmdir(save_dir);
 % Cleanup object.
 id_.JOB = -2;
 id_ = dmumps(id_, sparse([], [], [], n_sys, n_sys));
-%}
