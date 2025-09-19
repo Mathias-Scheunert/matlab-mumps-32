@@ -82,6 +82,7 @@ fprintf(sprintf('done (%.2d s)\n', toc));
 
 % Keep parameter that are not stored
 save_SYM = id.SYM;
+save_SYM_PERM = id.SYM_PERM;
 
 % Delete the instance, i.e. free internal memory (saved files remain).
 id.JOB = -2;
@@ -102,6 +103,7 @@ id = dmumps(id);
 % id.SAVE_DIR    = save_dir;
 % id.SAVE_PREFIX = save_prefix;
 id.SYM = save_SYM;
+id.SYM_PERM = save_SYM_PERM;
 
 % Restore saved instance.
 fprintf('MUMPS_ser: Restore ... ');
@@ -164,6 +166,7 @@ parfor kk = 1:n_rep
     % id.SAVE_DIR    = save_dir;
     % id.SAVE_PREFIX = save_prefix;
     id_.SYM = save_SYM;
+    id_.SYM_PERM = save_SYM_PERM;
 
     % Restore saved instance.
     id_.JOB = 8;
