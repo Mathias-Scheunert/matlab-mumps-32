@@ -25,4 +25,16 @@ https://linuxconfig.org/how-to-switch-between-multiple-gcc-and-g-compiler-versio
 
 Simply execute ```make_...``` in order (and hope that it will also work as simple ;-)
 
+## Literature
+P. R. Amestoy, I. S. Duff, J. Koster and J.-Y. L’Excellent,
+A fully asynchronous multifrontal solver using distributed dynamic
+scheduling, SIAM Journal on Matrix Analysis and Applications,
+Vol 23, No 1, pp 15-41 (2001).
+
+P. R. Amestoy, A. Buttari, J.-Y. L’Excellent and T. Mary,
+Performance and scalability of the block low-rank multifrontal
+factorization on multicore architectures,
+ACM Transactions on Mathematical Software,
+Vol 45, Issue 1, pp 2:1-2:26 (2019)
+
 
