@@ -237,7 +237,7 @@ end
 
 function s = update_struct(s, s_new)
     % Remove fields in s_new from s and raise error if field not in s.
-    
+
     s = rmfield(s, fieldnames(s_new));
 
     % Concatenate s and s_new
