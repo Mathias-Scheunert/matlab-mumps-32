@@ -5,11 +5,15 @@ set -e
 : ${MUMPS_VERSION:=5.6.2}
 : ${PREFIX:="${PWD}"}
 
+# Get path to matlab / mex
+MATLAB_BIN=$(which matlab)
+MATLAB_DIR=$(dirname "$MATLAB_BIN")
+
 # Build mex-files
 cd src/MUMPS_${MUMPS_VERSION}/MATLAB
 cp Makefile Makefile.bak
 cp ../../../Makefile_matlab ./Makefile
-make
+make MEX="${MATLAB_DIR}/mex -largeArrayDims"
 
 # Install
 mkdir -p "${PREFIX}/lib/matlab"
