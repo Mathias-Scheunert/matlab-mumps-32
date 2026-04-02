@@ -110,9 +110,6 @@ classdef MUMPS_OOC < handle
             %       decomposition is written to disc
             obj.n_sys = size(A, 1);
             obj.A = sparse([], [], [], obj.n_sys, obj.n_sys);
-
-            % Cleanup object
-            obj.unload();
         end
 
         function load(obj)
