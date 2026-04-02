@@ -48,7 +48,7 @@ LIBSEQ  = $(LAPACK) -L$(topdir)/libseq/ -lmpiseq
 CDEFS   = -DAdd_
 
 #Begin Optimized options
-OPTF    = -O3 -fopenmp -DBLR_MT
+OPTF    = -O3 -fopenmp -DBLR_MT -fallow-argument-mismatch
 OPTL    = -O3 -fopenmp -DBLR_MT
 OPTC    = -O3 -fopenmp -DBLR_MT
 #End Optimized options

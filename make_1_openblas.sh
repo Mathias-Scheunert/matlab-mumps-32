@@ -18,7 +18,8 @@ git checkout tags/${OBLAS_VERSION}
 # -> PREFIX=... not required as automatically build in current folder
 # -> INTERFACE64=1 enable 64-bit interface (not supported by all compilers!)
 # -> BINARY=64 64-bit binary generation (seems to be set automatically if INTERFACE64=1)
-make INTERFACE64=0 NO_LAPACKE=1 NO_CBLAS=1 NO_SHARED=1 USE_OPENMP=1 DYNAMIC_ARCH=1 DYNAMIC_OLDER=1
+# -> Force usage of GNU-compiler
+make CC=gcc FC=gfortran INTERFACE64=0 NO_LAPACKE=1 NO_CBLAS=1 NO_SHARED=1 USE_OPENMP=1 DYNAMIC_ARCH=1 DYNAMIC_OLDER=1
 
 # Copy library files
 mkdir -p "${PREFIX}/lib"
